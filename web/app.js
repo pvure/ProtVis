@@ -338,10 +338,9 @@ function caption() {
   $('#model').textContent = `ESM-2 ${size} · ${D.n_layers} LAYERS · ${D.dim}-D`;
 }
 
-// ─── landscape: the protein as a folding funnel, with a town on it ───
+// ─── landscape: the protein as terrain, with a town on it ────────────
 // map = final-layer embedding (PC1, PC3). terrain = "energy": residues
-// ESM-2 believes carve basins, residues it doubts push up ridges, and the
-// whole map bowls down toward the middle like a folding funnel.
+// ESM-2 believes carve basins, residues it doubts push up ridges.
 // towers = residues, taller = more support. road = the chain. arcs = contacts.
 const land = { a: 0, to: 0, towersOn: true, grow: 0, G: null };
 const MAPW = 15;
@@ -367,7 +366,6 @@ function buildLand(D) {
   const sup = Array.from({ length: L }, (_, i) => support(i));
   const w = clamp(1.25 * Math.sqrt(150 / L), 0.5, 1.5), inv = 1 / (2 * w * w), cut = 9 * w * w;
   const field = (x, z) => { let F = 0; for (let i = 0; i < L; i++) { const dx = x - Q[i].x, dz = z - Q[i].y, d2 = dx * dx + dz * dz; if (d2 < cut) F += (sup[i] - 0.5) * Math.exp(-d2 * inv); } return F; };
-  const bowl = (r) => 0.016 * r * r - 3.2 * Math.exp(-(r * r) / (2 * (MAPW * 0.42) ** 2));
 
   // terrain
   const ext = MAPW * 1.5, res = L > 600 ? 160 : 200;
@@ -375,17 +373,17 @@ function buildLand(D) {
   const tp = tg.attributes.position, Fs = new Float32Array(tp.count);
   for (let n = 0; n < tp.count; n++) Fs[n] = field(tp.getX(n), tp.getZ(n));
   const sorted = Float32Array.from(Fs, Math.abs).sort(), Fref = sorted[Math.floor(sorted.length * 0.97)] || 1;
-  const hOf = (F, r) => -2.4 * Math.tanh((F / Fref) * 1.4) + bowl(r);
+  const hOf = (F) => -2.4 * Math.tanh((F / Fref) * 1.4);
   const H = new Float32Array(tp.count), T = new Float32Array(tp.count), Rr = new Float32Array(tp.count);
   let hmin = Infinity, hmax = -Infinity;
   for (let n = 0; n < tp.count; n++) {
-    const x = tp.getX(n), z = tp.getZ(n), h = hOf(Fs[n], Math.hypot(x, z));
+    const x = tp.getX(n), z = tp.getZ(n), h = hOf(Fs[n]);
     T[n] = Math.tanh((Fs[n] / Fref) * 1.4); Rr[n] = Math.hypot(x, z);
     tp.setY(n, h); H[n] = h; if (Math.hypot(x, z) < MAPW) { hmin = Math.min(hmin, h); hmax = Math.max(hmax, h); }
   }
   tg.computeVertexNormals();
   tg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(tp.count * 3), 3));
-  const hAt = (x, z) => hOf(field(x, z), Math.hypot(x, z));
+  const hAt = (x, z) => hOf(field(x, z));
   const terrain = new THREE.Mesh(tg, terrainMaterial()); terrain.receiveShadow = true;
 
   // towers
@@ -452,8 +450,8 @@ function colorLand() {
   const c = new THREE.Color(), paper = new THREE.Color('#fbf8f3');
   for (let i = 0; i < st.L; i++) Gl.towers.setColorAt(i, ramp(value(i), c));
   Gl.towers.instanceColor.needsUpdate = true;
-  // terrain: tinted only by the protein's own basins (believed) and ridges (doubted),
-  // washed toward paper and fading to plain paper at the funnel's rim
+  // terrain: tinted by its basins (believed) and ridges (doubted),
+  // washed toward paper and fading to plain paper at the edges
   const tc = Gl.terrain.geometry.attributes.color;
   for (let n = 0; n < Gl.T.length; n++) {
     const wash = lerp(0.5, 0.92, smooth(MAPW * 0.55, MAPW * 1.15, Gl.Rr[n]));
@@ -499,7 +497,7 @@ canvas.addEventListener('pointermove', (e) => {
 canvas.addEventListener('pointerleave', () => { st.hover = -1; updateHover(); });
 
 const VIEWS = { fold: { d: 24, el: 0.2, target: new THREE.Vector3(0, -0.3, 0) }, expl: { d: 31, el: 0.4, target: new THREE.Vector3(0, -0.4, 0) },
-  land: { d: 34, el: 0.62, target: new THREE.Vector3(0, -2, 0) } };
+  land: { d: 34, el: 0.62, target: new THREE.Vector3(0, -0.5, 0) } };
 const fit = () => (camera.aspect < 1 ? Math.min(1.7, 0.55 / camera.aspect + 0.3) : 1);
 let camTween = null;
 function goto(mode, instant = false) {
