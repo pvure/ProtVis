@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
-  PROTVIS: a protein, as ESM-2 sees it. Purely to look at.
+  PROTVIS: a protein, as ESM-2 sees it. Purely to look at. Matte, pastel.
 
-  SHIFT-2  landscape (F ride, B city)
+  SHIFT-2  landscape (B town)
   SHIFT-3  explode into layers     SHIFT-1  fold
   K        palette                 C        contacts
   SPACE    spin                    /        paste a sequence
@@ -16,45 +16,44 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
 <style>
-  /* one look on purpose: a confocal field. black ground, fluorophore light, tiny caption type */
+  /* one look on purpose: matte clay on warm paper, soft daylight, quiet grey type */
   :root {
-    --field: #030406;
-    --caption: #8b93a1;
-    --caption-hi: #e9eef5;
-    --line: #2a2f38;
-    --mcherry: #ff3b5c;
-    --egfp: #46ff9b;
+    --field: #f1ede7;
+    --field-edge: #e6e0d8;
+    --caption: #9a948b;
+    --caption-hi: #4a4741;
+    --line: #d9d2c8;
+    --accent: #e99a94;
+    --dot: #9cc3e4;
     --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-    color-scheme: dark;
+    color-scheme: light;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; }
-  body { background: var(--field); color: var(--caption); font: 300 10.5px/1.8 var(--mono); letter-spacing: .14em; text-transform: uppercase; -webkit-font-smoothing: antialiased; }
+  body { background: radial-gradient(ellipse at 50% 42%, var(--field) 45%, var(--field-edge) 100%) fixed, var(--field); color: var(--caption); font: 300 10.5px/1.8 var(--mono); letter-spacing: .14em; text-transform: uppercase; -webkit-font-smoothing: antialiased; }
   canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
   canvas#gl:active { cursor: grabbing; }
-  body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 4;
-    background: radial-gradient(ellipse at 50% 48%, transparent 55%, color-mix(in srgb, var(--field) 80%, transparent) 100%); }
 
   .ui { position: fixed; z-index: 10; transition: opacity 1.2s; }
   body.idle .ui.fades { opacity: .0; }
   #cap { left: max(28px, env(safe-area-inset-left, 0px)); bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
   #cap .name { color: var(--caption-hi); font-size: 13px; letter-spacing: .32em; font-weight: 400; }
   #scale { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-  #scale i { display: block; height: 2px; width: 56px; background: var(--caption-hi); opacity: .8; }
+  #scale i { display: block; height: 6px; width: 56px; border-radius: 3px; background: var(--caption-hi); }
 
   #side { right: max(28px, env(safe-area-inset-right, 0px)); top: max(24px, env(safe-area-inset-top, 0px)); text-align: right; }
   #demos { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
   #demos a { color: var(--caption); cursor: pointer; text-decoration: none; transition: color .3s; }
   #demos a:hover, #demos a:focus-visible { color: var(--caption-hi); outline: none; }
   #demos a.on { color: var(--caption-hi); }
-  #demos a.on::before { content: "● "; color: var(--egfp); }
+  #demos a.on::before { content: "● "; color: var(--dot); }
   #seq { margin-top: 10px; width: 220px; height: 22px; resize: none; overflow: hidden; display: block; margin-left: auto;
          background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--caption-hi);
          font: inherit; letter-spacing: .06em; text-transform: uppercase; text-align: right; outline: none; transition: height .3s, width .3s, border-color .3s; }
   #seq:focus { height: 96px; width: min(360px, calc(100vw - 56px)); overflow: auto; text-align: left; word-break: break-all; border-color: var(--caption); }
   #seq::placeholder { color: var(--caption); opacity: .6; }
   #status { margin-top: 6px; max-width: 300px; margin-left: auto; text-transform: none; letter-spacing: .04em; min-height: 1.8em; }
-  #status.err { color: var(--mcherry); }
+  #status.err { color: #b8625b; }
 
   #hint { right: max(28px, env(safe-area-inset-right, 0px)); bottom: max(24px, env(safe-area-inset-bottom, 0px)); text-align: right; opacity: .7; }
   #hint b { color: var(--caption-hi); font-weight: 400; }
@@ -95,7 +94,7 @@
   <div id="scale"><i></i><span id="scaletxt">1 σ</span></div>
 </div>
 
-<div id="hint" class="ui fades"><b>SHIFT-2</b> LANDSCAPE &nbsp; <b>SHIFT-3</b> LAYERS &nbsp; <b>F</b> RIDE &nbsp; <b>B</b> CITY &nbsp; <b>K</b> PALETTE &nbsp; <b>C</b> CONTACTS &nbsp; <b>SPACE</b> SPIN</div>
+<div id="hint" class="ui fades"><b>SHIFT-2</b> LANDSCAPE &nbsp; <b>SHIFT-3</b> LAYERS &nbsp; <b>B</b> TOWN &nbsp; <b>K</b> PALETTE &nbsp; <b>C</b> CONTACTS &nbsp; <b>SPACE</b> SPIN</div>
 <div id="toast" role="status"></div>
 
 <!--DEMO-DATA-->
