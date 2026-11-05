@@ -349,13 +349,14 @@ function terrainMaterial() {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, transparent: true });
   // faint topographic lines pressed into the clay
   m.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vH;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = position.y;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vH;')
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vH; varying float vR;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvH = position.y; vR = length(position.xz);');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vH; varying float vR;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        float f1 = vH * 2.5, d1 = abs(fract(f1 - 0.5) - 0.5) / max(fwidth(f1), 1e-4);
-        float f2 = vH * 0.5, d2 = abs(fract(f2 - 0.5) - 0.5) / max(fwidth(f2), 1e-4);
-        diffuseColor.rgb *= 1.0 - 0.07 * (1.0 - min(d1, 1.0)) - 0.1 * (1.0 - min(d2, 1.0));`);
+        float f1 = vH * 2.5 + 0.5, d1 = abs(fract(f1 - 0.5) - 0.5) / max(fwidth(f1), 1e-4);
+        float f2 = vH * 0.5 + 0.5, d2 = abs(fract(f2 - 0.5) - 0.5) / max(fwidth(f2), 1e-4);
+        diffuseColor.rgb *= 1.0 - 0.07 * (1.0 - min(d1, 1.0)) - 0.1 * (1.0 - min(d2, 1.0));
+        diffuseColor.a *= 1.0 - smoothstep(${(MAPW * 0.95).toFixed(1)}, ${(MAPW * 1.45).toFixed(1)}, vR);  // ground dissolves into the paper`);
   };
   return m;
 }
@@ -364,7 +365,7 @@ function buildLand(D) {
   const L = st.L, k = (MAPW * 0.8) / 1.2;
   const Q = D.emb3d.map((p) => new THREE.Vector2(p[0] * k, p[2] * k));
   const sup = Array.from({ length: L }, (_, i) => support(i));
-  const w = clamp(1.25 * Math.sqrt(150 / L), 0.5, 1.5), inv = 1 / (2 * w * w), cut = 9 * w * w;
+  const w = clamp(1.25 * Math.sqrt(150 / L), 0.5, 1.5), inv = 1 / (2 * w * w), cut = 18 * w * w;
   const field = (x, z) => { let F = 0; for (let i = 0; i < L; i++) { const dx = x - Q[i].x, dz = z - Q[i].y, d2 = dx * dx + dz * dz; if (d2 < cut) F += (sup[i] - 0.5) * Math.exp(-d2 * inv); } return F; };
 
   // terrain
